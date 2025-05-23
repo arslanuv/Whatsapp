@@ -1,271 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="pushsdk" content="873294f2095fb85c16528650a3487428">
-  <title>WhatsApp Dashboard</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #ffffff;
-    }
-    #toast {
-      visibility: hidden;
-      min-width: 250px;
-      margin-left: -125px;
-      background-color: #4caf50;
-      color: white;
-      text-align: center;
-      border-radius: 8px;
-      padding: 16px;
-      position: fixed;
-      z-index: 1;
-      top: 20px;
-      left: 50%;
-      font-size: 16px;
-    }
-    #toast.show {
-      visibility: visible;
-      animation: fadein 0.5s, fadeout 0.5s 2.5s;
-    }
-    @keyframes fadein {
-      from { top: 0; opacity: 0; }
-      to { top: 20px; opacity: 1; }
-    }
-    @keyframes fadeout {
-      from { top: 20px; opacity: 1; }
-      to { top: 0; opacity: 0; }
-    }
-    .card {
-      padding: 20px;
-      max-width: 400px;
-      margin: 50px auto;
-    }
-    .form-group input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    .btn {
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      width: 100%;
-      color: white;
-      background-color: #0a9933;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .dashboard {
-      display: none;
-    }
-    .top-green {
-      background-color: #0a9933;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
-    }
-    .top-green h2 {
-      margin: 5px 0;
-    }
-    .wallet-img {
-      width: 100px;
-      margin: 10px auto;
-    }
-    .whatsapp-section {
-      padding: 20px;
-      text-align: center;
-    }
-    .add-btn {
-      background: white;
-      border-radius: 15px;
-      padding: 15px;
-      width: 90%;
-      margin: auto;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      cursor: pointer;
-    }
-    .add-btn img {
-      width: 20px;
-    }
-    .placeholder {
-      color: #ccc;
-      font-size: 50px;
-      margin: 40px 0 10px;
-    }
-    .bottom-text {
-      color: grey;
-    }
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      display: flex;
-      justify-content: space-around;
-      border-top: 1px solid #ccc;
-      background: #f8f8f8;
-      padding: 8px 0;
-    }
-    .bottom-nav div {
-      font-size: 12px;
-      text-align: center;
-      color: #333;
-    }
-    .active {
-      color: green;
-      font-weight: bold;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera to Telegram</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        video, canvas {
+            border: 2px solid #333;
+            margin: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #status {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+    </style>
 </head>
 <body>
-  <div id="toast">Registration Successful</div>
+    <video id="video" width="640" height="480" autoplay></video>
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+    <button id="capture">Capture Photo</button>
+    <button id="send">Send to Telegram</button>
+    <div id="status">Waiting for camera access...</div>
 
-  <!-- Registration Form -->
-  <div class="card" id="registrationForm">
-    <h3>Register</h3>
-    <div class="form-group">
-      <input type="text" placeholder="+92 Phone Number" />
-      <input type="email" placeholder="Email" />
-      <input type="password" placeholder="Password" />
-    </div>
-    <button class="btn" onclick="showDashboard()">Agree, Next</button>
-  </div>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureButton = document.getElementById('capture');
+        const sendButton = document.getElementById('send');
+        const status = document.getElementById('status');
+        const context = canvas.getContext('2d');
 
-  <!-- Dashboard -->
-  <div class="dashboard" id="dashboard">
-    <div class="top-green">
-      <h2>State</h2>
-      <p>WhatsApp income</p>
-      <h2>Rs0.00</h2>
-      <p>Online 0 account &nbsp;&nbsp; GET 0 account</p>
-      <img src="https://cdn-icons-png.flaticon.com/512/4299/4299717.png" class="wallet-img" />
-    </div>
-    <div class="whatsapp-section">
-      <div class="add-btn" onclick="showPopup()">
-        <img src="https://img.icons8.com/ios-filled/50/26e07f/plus-math.png" />
-        Add Whatsapp
-      </div>
-      <div class="placeholder">
-        <img src="https://img.icons8.com/ios-filled/100/cccccc/whatsapp.png" width="70"/>
-      </div>
-      <p class="bottom-text">WhatsApp has not been added yet</p>
-    </div>
-  </div>
+        // Request camera access
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                status.textContent = "Camera access granted. Ready to capture.";
+            } catch (err) {
+                status.textContent = "Error accessing camera: " + err.message;
+            }
+        }
 
-  <!-- WhatsApp Add Popup -->
-  <div id="whatsappPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 999;">
-    <div style="max-width: 400px; background: white; margin: 100px auto; border-radius: 20px; overflow: hidden;">
-      <div style="background: #0a9933; padding: 20px; color: white; text-align: center;">
-        <h2 style="margin: 0;">Add Whatsapp</h2>
-      </div>
-      <div style="padding: 20px;">
-        <p>Silakan pilih metode login WhatsApp yang cocok untuk Anda</p>
-        <label style="display: flex; align-items: center; border: 1px solid #ccc; padding: 10px; border-radius: 10px; margin: 10px 0;" onclick="showPhoneLinkPopup()">
-          <img src="https://img.icons8.com/ios/24/phone--v1.png" style="margin-right: 10px;" />
-          <div style="flex-grow: 1;">
-            <strong>Use phone number</strong><br/>
-            <small>Enter the link code on WhatsApp to add an account</small>
-          </div>
-          <span style="background: red; color: white; padding: 2px 6px; font-size: 10px; border-radius: 4px; margin-left: 5px;">HOT</span>
-        </label>
+        // Capture photo from video stream
+        captureButton.addEventListener('click', () => {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            status.textContent = "Photo captured! Ready to send.";
+        });
 
-        <label style="display: flex; align-items: center; border: 1px solid #ccc; padding: 10px; border-radius: 10px;">
-          <img src="https://img.icons8.com/ios/24/qr-code.png" style="margin-right: 10px;" />
-          <div style="flex-grow: 1;">
-            <strong>QR code</strong><br/>
-            <small>Use WhatsApp to scan the QR code and add an account</small>
-          </div>
-        </label>
+        // Send photo to Telegram bot
+        sendButton.addEventListener('click', async () => {
+            status.textContent = "Sending photo to Telegram...";
+            const botToken = "7695305544:AAEjpPkRYN99z9z89QwIdPLtXQwrY4gU32U";
+            const chatId = "8185117842";
+            const telegramUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
 
-        <button onclick="closePopup()" style="margin-top: 15px; width: 100%; padding: 10px; background: #0a9933; color: white; border: none; border-radius: 10px;">Close</button>
-      </div>
-    </div>
-  </div>
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('chat_id', chatId);
+                formData.append('photo', blob, 'photo.jpg');
 
-  <!-- Phone Link Popup -->
-  <div id="phoneLinkPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000;">
-    <div style="max-width: 400px; background: white; margin: 100px auto; padding: 20px; border-radius: 15px;">
-      <h3 style="color: #0a9933;">Link with Phone Number</h3>
-      <input type="text" id="phoneInput" placeholder="Enter phone number" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin-top: 10px;">
-      <button onclick="generateCode()" class="btn" style="margin-top: 15px;">Get Code</button>
-      <div id="codeArea" style="display:none; margin-top: 20px;">
-        <p id="generatedCode" style="font-weight: bold; font-size: 20px; color: #0a9933;"></p>
-        <input type="text" id="codeInput" placeholder="Enter code" style="width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 8px;">
-        <button onclick="verifyCode()" class="btn" style="margin-top: 10px;">Verify</button>
-      </div>
-      <button onclick="closePhonePopup()" style="margin-top: 15px; width: 100%; padding: 10px; background: #ccc; color: black; border: none; border-radius: 10px;">Cancel</button>
-    </div>
-  </div>
+                try {
+                    const response = await fetch(telegramUrl, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const result = await response.json();
+                    if (result.ok) {
+                        status.textContent = "Photo sent to Telegram successfully!";
+                    } else {
+                        status.textContent = "Error sending photo: " + result.description;
+                    }
+                    console.log('Response:', result); // Log response for debugging
+                } catch (err) {
+                    status.textContent = "Error sending photo: " + err.message;
+                    console.error('Fetch error:', err); // Log error for debugging
+                }
+            }, 'image/jpeg');
+        });
 
-  <!-- Bottom Navigation -->
-  <div class="bottom-nav" id="bottomNav" style="display: none;">
-    <div>Home</div>
-    <div class="active">State</div>
-    <div>Invite</div>
-    <div>Activity</div>
-    <div>Me</div>
-  </div>
-
-  <script>
-    function showDashboard() {
-      document.getElementById("registrationForm").style.display = "none";
-      document.getElementById("dashboard").style.display = "block";
-      document.getElementById("bottomNav").style.display = "flex";
-      let toast = document.getElementById("toast");
-      toast.className = "show";
-      setTimeout(() => {
-        toast.className = toast.className.replace("show", "");
-      }, 3000);
-    }
-
-    function showPopup() {
-      document.getElementById("whatsappPopup").style.display = "block";
-    }
-
-    function closePopup() {
-      document.getElementById("whatsappPopup").style.display = "none";
-    }
-
-    function showPhoneLinkPopup() {
-      closePopup();
-      document.getElementById("phoneLinkPopup").style.display = "block";
-    }
-
-    function closePhonePopup() {
-      document.getElementById("phoneLinkPopup").style.display = "none";
-      document.getElementById("codeArea").style.display = "none";
-      document.getElementById("phoneInput").value = "";
-      document.getElementById("codeInput").value = "";
-    }
-
-    let actualCode = "";
-
-    function generateCode() {
-      actualCode = Math.floor(100000 + Math.random() * 900000).toString();
-      document.getElementById("generatedCode").innerText = "Your Code: " + actualCode;
-      document.getElementById("codeArea").style.display = "block";
-    }
-
-    function verifyCode() {
-      const entered = document.getElementById("codeInput").value;
-      if (entered === actualCode) {
-        alert("Phone number linked successfully!");
-        closePhonePopup();
-      } else {
-        alert("Incorrect code. Please try again.");
-      }
-    }
-  </script>
+        // Start the camera when the page loads
+        startCamera();
+    </script>
 </body>
 </html>
