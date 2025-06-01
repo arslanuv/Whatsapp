@@ -1,109 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera to Telegram</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-        }
-        video, canvas {
-            border: 2px solid #333;
-            margin: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        #status {
-            margin-top: 10px;
-            font-size: 16px;
-            color: #333;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Earn Rupees</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #00c6ff, #0072ff);
+      color: white;
+      text-align: center;
+      padding-top: 100px;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 48px;
+      margin-bottom: 50px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .btn {
+      display: inline-block;
+      margin: 20px;
+      padding: 20px 40px;
+      font-size: 20px;
+      color: #fff;
+      background-color: #ff4757;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #e84118;
+    }
+  </style>
 </head>
 <body>
-    <video id="video" width="640" height="480" autoplay></video>
-    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
-    <button id="capture">Capture Photo</button>
-    <button id="send">Send to Telegram</button>
-    <div id="status">Waiting for camera access...</div>
 
-    <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const captureButton = document.getElementById('capture');
-        const sendButton = document.getElementById('send');
-        const status = document.getElementById('status');
-        const context = canvas.getContext('2d');
+  <h1>💸 Your Balance: PKR <span id="balance">0</span></h1>
+  <button class="btn" onclick="earn('youtube')"><strong>Subscribe on YouTube</strong></button>
+  <button class="btn" onclick="earn('tiktok')"><strong>Follow on TikTok</strong></button>
+  <a href="withdrawal.html"><strong>Withdraw</strong></a>
 
-        // Request camera access
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
-                status.textContent = "Camera access granted. Ready to capture.";
-            } catch (err) {
-                status.textContent = "Error accessing camera: " + err.message;
-            }
-        }
+  <script>
+    let balance = 0;
 
-        // Capture photo from video stream
-        captureButton.addEventListener('click', () => {
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            status.textContent = "Photo captured! Ready to send.";
-        });
+    function earn(platform) {
+      if (platform === 'youtube') {
+        window.open('https://youtu.be/TeD2RwA0ot4?si=CU4ECdmiWOaPcqRI', '_blank');
+        balance += 100;
+      } else if (platform === 'tiktok') {
+        window.open('https://www.tiktok.com/@velog02?_t=ZN-8wqQVjoIbBe&_r=1', '_blank');
+        balance += 100;
+      }
 
-        // Send photo to Telegram bot
-        sendButton.addEventListener('click', async () => {
-            status.textContent = "Sending photo to Telegram...";
-            const botToken = "7695305544:AAEjpPkRYN99z9z89QwIdPLtXQwrY4gU32U";
-            const chatId = "8185117842";
-            const telegramUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+      document.getElementById('balance').textContent = balance;
+    }
+  </script>
 
-            canvas.toBlob(async (blob) => {
-                const formData = new FormData();
-                formData.append('chat_id', chatId);
-                formData.append('photo', blob, 'photo.jpg');
-
-                try {
-                    const response = await fetch(telegramUrl, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const result = await response.json();
-                    if (result.ok) {
-                        status.textContent = "Photo sent to Telegram successfully!";
-                    } else {
-                        status.textContent = "Error sending photo: " + result.description;
-                    }
-                    console.log('Response:', result); // Log response for debugging
-                } catch (err) {
-                    status.textContent = "Error sending photo: " + err.message;
-                    console.error('Fetch error:', err); // Log error for debugging
-                }
-            }, 'image/jpeg');
-        });
-
-        // Start the camera when the page loads
-        startCamera();
-    </script>
 </body>
 </html>
